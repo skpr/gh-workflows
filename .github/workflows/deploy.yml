@@ -54,9 +54,9 @@ jobs:
             version=$(git describe --tags --always)
           fi
           echo "version=$version" >> $GITHUB_OUTPUT
-      - name: Setup
+      - name: Install Skpr CLI
         run: |
-          gh release download --repo skpr/cli --pattern skpr_*linux_amd64.deb -O skpr-cli.deb
+          gh release download --repo skpr/cli --pattern skpr_*_linux_amd64.deb -O skpr-cli.deb
           sudo dpkg -i skpr-cli.deb
       - name: Info
         id: skpr-info
