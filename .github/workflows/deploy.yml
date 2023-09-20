@@ -1,0 +1,80 @@
+name: Skpr Deploy
+
+on:
+  workflow_call:
+    inputs:
+      env:
+        type: string
+        required: true
+        description: The Skpr environment to deploy to.
+      package:
+        default: true
+        type: boolean
+        description: Whether this deployment needs to be packaged.
+      version:
+        type: string
+        description: The version to deploy
+      version_from_env:
+        type: string
+        description: Get the version to deploy from the environment.
+      post_deploy:
+        default: make deploy
+        type: string
+        description: The post deploy commands to run on the environment.
+    secrets:
+      skpr_username:
+        required: true
+      skpr_password:
+        required: true
+
+env:
+  SKPR_USERNAME: ${{ secrets.SKPR_USERNAME }}
+  SKPR_PASSWORD: ${{ secrets.SKPR_PASSWORD }}
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.env }}
+      url: ${{ steps.skpr-info.outputs.url }}
+    concurrency: ${{ inputs.env }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          show-progress: false
+      - name: Install Skpr CLI
+        run: |
+          gh release download --repo skpr/cli --pattern skpr_*_linux_amd64.deb -O skpr-cli.deb
+          sudo dpkg -i skpr-cli.deb
+      - name: Get version
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            version=${{ inputs.version }}
+            echo "::notice:: Using explicit version $version"
+          elif [ -n "${{ inputs.version_from_env }}" ]; then
+            version=$(skpr info ${{ inputs.version_from_env }} | jq -r ".Version")
+            echo "::notice:: Using version $version from ${{ inputs.version_from_env }} env"
+          else
+            version=$(git describe --tags --always)
+            echo "::notice:: Using version $version from git describe"
+          fi
+          echo "version=$version" >> $GITHUB_OUTPUT
+      - name: Info
+        id: skpr-info
+        shell: bash
+        run: |
+          domain=$(skpr info ${{ inputs.env }} | jq -r ".Ingress.Domain")
+          url=https://$domain
+          echo "url=$url" >> $GITHUB_OUTPUT
+      - name: Package
+        if: inputs.package
+        run: skpr package ${{ steps.version.outputs.version }}
+      - name: Deploy
+        run: skpr deploy ${{ inputs.env }} ${{ steps.version.outputs.version }}
+      - name: Post-deploy
+        run: skpr exec ${{ inputs.env }} ${{ inputs.post_deploy }}
+
