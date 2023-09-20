@@ -15,10 +15,15 @@ on:
         type: string
         description: The version to deploy
     secrets:
-      skpr_username:
+      SKPR_USERNAME:
         required: true
-      skpr_password:
+      SKPR_PASSWORD:
         required: true
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
 
 env:
   SKPR_USERNAME: ${{ secrets.SKPR_USERNAME }}
