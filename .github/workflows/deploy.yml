@@ -25,29 +25,11 @@ env:
   SKPR_PASSWORD: ${{ secrets.skpr_password }}
 
 jobs:
-  info:
-    runs-on: ubuntu-latest
-    concurrency: ${{ inputs.env }}
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          show-progress: false
-      - name: Skpr Info
-        id: skpr-info
-        uses: skpr/action-info@v1
-        with:
-          env: ${{ inputs.env }}
-    outputs:
-      url: ${{ steps.skpr-info.outputs.url }}
-
   deploy:
     runs-on: ubuntu-latest
-    needs: [ info ]
     environment:
       name: ${{ inputs.env }}
-      url: ${{ needs.info.outputs.url }}
+      url: ${{ steps.skpr-info.outputs.url }}
     concurrency: ${{ inputs.env }}
     steps:
       - name: Checkout Code
@@ -56,20 +38,30 @@ jobs:
           fetch-depth: 0
           show-progress: false
       - name: Get version
-        if:
+        id: version
+        run: |
+          if ${{ inputs.version == '' }}; then
+            version=$(git describe --tags --always)
+          fi
+          echo "version=$version" >> $GITHUB_OUTPUT
       - name: Skpr Setup
         uses: skpr/action-setup@v1
-      - name: Skpr Package
+      - name: Skpr Info
+        id: skpr-info
+        uses: skpr/action-info@v1
+        with:
+          env: ${{ inputs.env }}
+      - name: Package
         if: inputs.package
         uses: skpr/action-package@v1
         with:
-          version:
-      - name: Skpr Deploy
+          version: ${{ steps.version.outputs.version }}
+      - name: Deploy
         uses: skpr/action-deploy@v1
         with:
-          version: ${{ steps.skpr-info.outputs.version }}
+          version: ${{ steps.version.outputs.version }}
           env: ${{ inputs.env }}
-      - name: Run Skpr Post-deploy Command
+      - name: Post-deploy Commands
         uses: skpr/action-exec@v1
         with:
           env: ${{ env.SKPR_ENV }}
