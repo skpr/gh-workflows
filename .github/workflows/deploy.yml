@@ -54,10 +54,10 @@ jobs:
           fi
           echo "version=$version" >> $GITHUB_OUTPUT
       - name: Setup
-        uses: skpr/setup-action@v1
+        uses: skpr/setup-action@main
       - name: Info
         id: skpr-info
-        uses: skpr/info-action@v1
+        uses: skpr/info-action@main
         with:
           env: ${{ inputs.env }}
       - name: Package
