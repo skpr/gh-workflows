@@ -1,4 +1,4 @@
-name: deploy
+name: Skpr Deploy
 
 on:
   workflow_call:
@@ -53,11 +53,11 @@ jobs:
             version=$(git describe --tags --always)
           fi
           echo "version=$version" >> $GITHUB_OUTPUT
-      - name: Skpr Setup
-        uses: skpr/action-setup@v1
-      - name: Skpr Info
+      - name: Setup
+        uses: skpr/setup-action@v1
+      - name: Info
         id: skpr-info
-        uses: skpr/action-info@v1
+        uses: skpr/info-action@v1
         with:
           env: ${{ inputs.env }}
       - name: Package
