@@ -1,0 +1,51 @@
+name: deploy
+
+on:
+  workflow_call:
+    inputs:
+      skpr_env:
+        default: dev
+        type: string
+        description: The environment to deploy to.
+    secrets:
+      skpr_username:
+        required: true
+      skpr_password:
+        required: true
+
+env:
+  SKPR_USERNAME: ${{ secrets.skpr_username }}
+  SKPR_PASSWORD: ${{ secrets.skpr_password }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.skpr_env }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          show-progress: false
+      - name: Skpr Setup
+        uses: skpr/action-setup@v1
+      - name: Skpr Info
+        id: skpr-info
+        uses: skpr/action-info@v1
+        with:
+          env: ${{ inputs.skpr_env }}
+      - name: Skpr Package
+        uses: skpr/action-package@v1
+        with:
+          version: ${{ steps.skpr-info.outputs.version }}
+      - name: Skpr Deploy
+        uses: skpr/action-deploy@v1
+        with:
+          version: ${{ steps.skpr-info.outputs.version }}
+          env: ${{ inputs.skpr_env }}
+      - name: Run Skpr Post-deploy Command
+        uses: skpr/action-exec@v1
+        with:
+          env: ${{ env.SKPR_ENV }}
+          command: make deploy
