@@ -15,9 +15,9 @@ on:
         type: string
         description: The version to deploy
     secrets:
-      SKPR_USERNAME:
+      skpr_username:
         required: true
-      SKPR_PASSWORD:
+      skpr_password:
         required: true
 
 permissions:
