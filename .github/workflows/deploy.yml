@@ -14,6 +14,10 @@ on:
       version:
         type: string
         description: The version to deploy
+      post_deploy:
+        default: make deploy
+        type: string
+        description: The post deploy commands to run on the environment.
     secrets:
       skpr_username:
         required: true
@@ -58,16 +62,8 @@ jobs:
           env: ${{ inputs.env }}
       - name: Package
         if: inputs.package
-        uses: skpr/action-package@v1
-        with:
-          version: ${{ steps.version.outputs.version }}
+        run: skpr package ${{ steps.version.outputs.version }}
       - name: Deploy
-        uses: skpr/action-deploy@v1
-        with:
-          version: ${{ steps.version.outputs.version }}
-          env: ${{ inputs.env }}
+        run: skpr deploy ${{ inputs.env }} ${{ steps.version.outputs.version }}
       - name: Post-deploy Commands
-        uses: skpr/action-exec@v1
-        with:
-          env: ${{ env.SKPR_ENV }}
-          command: make deploy
+        run: skpr exec ${{ inputs.env }} ${{ inputs.post_deploy }}
