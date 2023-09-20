@@ -32,6 +32,7 @@ permissions:
 env:
   SKPR_USERNAME: ${{ secrets.SKPR_USERNAME }}
   SKPR_PASSWORD: ${{ secrets.SKPR_PASSWORD }}
+  GH_TOKEN: ${{ github.token }}
 
 jobs:
   deploy:
