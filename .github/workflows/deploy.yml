@@ -54,12 +54,18 @@ jobs:
           fi
           echo "version=$version" >> $GITHUB_OUTPUT
       - name: Setup
-        uses: skpr/setup-action@main
+        shell: bash
+        run: |
+          cli_version=$(curl -sSL "https://api.github.com/repos/skpr/cli/releases/latest" | jq -r .tag_name)
+          curl -sSL https://github.com/skpr/cli/releases/download/${cli_version}/skpr_${cli_version:1}_linux_amd64.deb -o skpr-cli.deb
+          sudo dpkg -i skpr-cli.deb
       - name: Info
         id: skpr-info
-        uses: skpr/info-action@main
-        with:
-          env: ${{ inputs.env }}
+        shell: bash
+        run: |
+          domain=$(skpr info ${{ inputs.env }} | jq -r ".Ingress.Domain")
+          url=https://$domain
+          echo "url=$url" >> $GITHUB_OUTPUT
       - name: Package
         if: inputs.package
         run: skpr package ${{ steps.version.outputs.version }}
