@@ -77,5 +77,4 @@ jobs:
         run: skpr deploy ${{ inputs.env }} ${{ steps.version.outputs.version }}
       - name: Post-deploy
         run: skpr exec ${{ inputs.env }} ${{ inputs.post_deploy }}
-      - name: Display version
-        run: echo "::notice:: Deployed ${{ steps.version.outputs.version }}"
+
