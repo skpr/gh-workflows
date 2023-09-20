@@ -3,10 +3,17 @@ name: deploy
 on:
   workflow_call:
     inputs:
-      skpr_env:
-        default: dev
+      env:
+        type: environment
+        required: true
+        description: The Skpr environment to deploy to.
+      package:
+        default: true
+        type: boolean
+        description: Whether this deployment needs to be packaged.
+      version:
         type: string
-        description: The environment to deploy to.
+        description: The version to deploy
     secrets:
       skpr_username:
         required: true
@@ -18,32 +25,50 @@ env:
   SKPR_PASSWORD: ${{ secrets.skpr_password }}
 
 jobs:
-  deploy:
+  info:
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ inputs.skpr_env }}
+    concurrency: ${{ inputs.env }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           show-progress: false
-      - name: Skpr Setup
-        uses: skpr/action-setup@v1
       - name: Skpr Info
         id: skpr-info
         uses: skpr/action-info@v1
         with:
-          env: ${{ inputs.skpr_env }}
+          env: ${{ inputs.env }}
+    outputs:
+      url: ${{ steps.skpr-info.outputs.url }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [ info ]
+    environment:
+      name: ${{ inputs.env }}
+      url: ${{ needs.info.outputs.url }}
+    concurrency: ${{ inputs.env }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          show-progress: false
+      - name: Get version
+        if:
+      - name: Skpr Setup
+        uses: skpr/action-setup@v1
       - name: Skpr Package
+        if: inputs.package
         uses: skpr/action-package@v1
         with:
-          version: ${{ steps.skpr-info.outputs.version }}
+          version:
       - name: Skpr Deploy
         uses: skpr/action-deploy@v1
         with:
           version: ${{ steps.skpr-info.outputs.version }}
-          env: ${{ inputs.skpr_env }}
+          env: ${{ inputs.env }}
       - name: Run Skpr Post-deploy Command
         uses: skpr/action-exec@v1
         with:
