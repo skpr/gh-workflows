@@ -21,8 +21,8 @@ on:
         required: true
 
 env:
-  SKPR_USERNAME: ${{ secrets.skpr_username }}
-  SKPR_PASSWORD: ${{ secrets.skpr_password }}
+  SKPR_USERNAME: ${{ secrets.SKPR_USERNAME }}
+  SKPR_PASSWORD: ${{ secrets.SKPR_PASSWORD }}
 
 jobs:
   deploy:
