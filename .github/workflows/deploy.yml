@@ -27,8 +27,12 @@ on:
       skpr_password:
         required: true
     outputs:
-      version: ${{ jobs.deploy.outputs.version }}
-      url: ${{ jobs.deploy.outputs.url }}
+      version:
+        description: The version deployed
+        value: ${{ jobs.deploy.outputs.version }}
+      url:
+        description: The URL of the environment
+        value: ${{ jobs.deploy.outputs.url }}
 
 env:
   SKPR_USERNAME: ${{ secrets.SKPR_USERNAME }}
@@ -42,6 +46,9 @@ jobs:
       name: ${{ inputs.env }}
       url: ${{ steps.skpr-info.outputs.url }}
     concurrency: ${{ inputs.env }}
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      url: ${{ steps.skpr-info.outputs.url }}
     steps:
       - name: ⬇️ Checkout Code
         uses: actions/checkout@v4
@@ -80,6 +87,4 @@ jobs:
         run: skpr deploy ${{ inputs.env }} ${{ steps.version.outputs.version }}
       - name: 🧹 Post-deploy
         run: skpr exec ${{ inputs.env }} ${{ inputs.post_deploy }}
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-      url: ${{ steps.skpr-info.outputs.url }}
+
