@@ -26,6 +26,9 @@ on:
         required: true
       skpr_password:
         required: true
+    outputs:
+      version: ${{ jobs.deploy.outputs.version }}
+      url: ${{ jobs.deploy.outputs.url }}
 
 env:
   SKPR_USERNAME: ${{ secrets.SKPR_USERNAME }}
