@@ -40,16 +40,16 @@ jobs:
       url: ${{ steps.skpr-info.outputs.url }}
     concurrency: ${{ inputs.env }}
     steps:
-      - name: Checkout Code
+      - name: ⬇️ Checkout Code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           show-progress: false
-      - name: Install Skpr CLI
+      - name: ⚙️ Install Skpr CLI
         run: |
           gh release download --repo skpr/cli --pattern skpr_*_linux_amd64.deb -O skpr-cli.deb
           sudo dpkg -i skpr-cli.deb
-      - name: Get version
+      - name: 🔢 Get version
         id: version
         run: |
           if [ -n "${{ inputs.version }}" ]; then
@@ -63,18 +63,20 @@ jobs:
             echo "::notice:: Using version $version from git describe"
           fi
           echo "version=$version" >> $GITHUB_OUTPUT
-      - name: Info
+      - name: ℹ️ Info
         id: skpr-info
         shell: bash
         run: |
           domain=$(skpr info ${{ inputs.env }} | jq -r ".Ingress.Domain")
           url=https://$domain
           echo "url=$url" >> $GITHUB_OUTPUT
-      - name: Package
+      - name: 📦 Package
         if: inputs.package
         run: skpr package ${{ steps.version.outputs.version }}
-      - name: Deploy
+      - name: 🚀 Deploy
         run: skpr deploy ${{ inputs.env }} ${{ steps.version.outputs.version }}
-      - name: Post-deploy
+      - name: 🧹 Post-deploy
         run: skpr exec ${{ inputs.env }} ${{ inputs.post_deploy }}
-
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      url: ${{ steps.skpr-info.outputs.url }}
