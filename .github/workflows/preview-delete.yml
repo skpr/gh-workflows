@@ -1,0 +1,54 @@
+name: Delete Preview Environment
+
+on:
+  workflow_call:
+    inputs:
+      image:
+        type: string
+        default: skpr/preview:2.x
+        description: Region which this preview infrastructure resides.
+      region:
+        type: string
+        required: true
+        description: Region which this preview infrastructure resides.
+      eks_cluster_name:
+        default: true
+        type: boolean
+        description: Name of the EKS cluster which this preview environment resides.
+      k8s_namespace:
+        type: string
+        description: Name of the Kubernetes namespace which this preview environment resides.
+    secrets:
+      skpr_preview_username:
+        required: true
+      skpr_preview_password:
+        required: true
+
+env:
+  AWS_REGION: ${{ inputs.region }}
+  SKPR_PREVIEW_CLUSTER_NAME: ${{ inputs.eks_cluster_name }}
+  SKPR_PREVIEW_NAMESPACE: ${{ inputs.k8s_namespace }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.SKPR_PREVIEW_USERNAME }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.SKPR_PREVIEW_PASSWORD }}
+
+jobs:
+  create-preview:
+    name: Create Preview Environment
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ inputs.image }}
+    outputs:
+      preview-name: ${{ steps.info.outputs.preview_name }}
+      preview-domain: ${{ steps.info.outputs.preview_domain }}
+    steps:
+      - name: ⬇️ Checkout Code
+        uses: actions/checkout@v3
+      - name: ℹ️ Get Preview Environment Information
+        id: info
+        run: |
+          PREVIEW_NAME=${{ github.event.pull_request.head.ref }}
+          PREVIEW_NAME=$(echo $PREVIEW_NAME | sed -r 's/[^a-zA-Z0-9-]//g' | tr '[:upper:]' '[:lower:]')
+          echo "::set-output name=preview_name::$PREVIEW_NAME"
+      - name: 🧹 Delete Preview Environment
+        run: |
+          skpr-preview delete ${{ steps.info.outputs.preview_name }}

@@ -1,0 +1,79 @@
+name: Create Preview Environment
+
+on:
+  workflow_call:
+    inputs:
+      image:
+        type: string
+        default: skpr/preview:2.x
+        description: Region which this preview infrastructure resides.
+      region:
+        type: string
+        required: true
+        description: Region which this preview infrastructure resides.
+      eks_cluster_name:
+        default: true
+        type: boolean
+        description: Name of the EKS cluster which this preview environment resides.
+      k8s_namespace:
+        type: string
+        description: Name of the Kubernetes namespace which this preview environment resides.
+      domain:
+        type: string
+        description: Domain which these preview environments reside on.
+      post_deploy_command:
+        type: string
+        description: Command which will be executed after the environment is created. 
+    secrets:
+      skpr_preview_registry_url:
+        required: true
+      skpr_preview_username:
+        required: true
+      skpr_preview_password:
+        required: true
+    outputs:
+      version:
+        description: The preview environment name
+        value: ${{ jobs.info.outputs.preview_name }}
+      url:
+        description: The URL of the preview environment
+        value: ${{ jobs.info.outputs.preview_domain }}
+
+env:
+  AWS_REGION: ${{ inputs.region }}
+  SKPR_PREVIEW_CLUSTER_NAME: ${{ inputs.eks_cluster_name }}
+  SKPR_PREVIEW_NAMESPACE: ${{ inputs.k8s_namespace }}
+  SKPR_PREVIEW_REGISTRY_URL: ${{ secrets.SKPR_PREVIEW_REGISTRY_URL }}
+  SKPR_PREVIEW_REGISTRY_USERNAME: ${{ secrets.SKPR_PREVIEW_USERNAME }}
+  SKPR_PREVIEW_REGISTRY_PASSWORD: ${{ secrets.SKPR_PREVIEW_PASSWORD }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.SKPR_PREVIEW_USERNAME }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.SKPR_PREVIEW_PASSWORD }}
+
+jobs:
+  create-preview-environment:
+    name: Delete Preview Environment
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ inputs.image }}
+    outputs:
+      preview-name: ${{ steps.info.outputs.preview_name }}
+      preview-domain: ${{ steps.info.outputs.preview_domain }}
+    steps:
+      - name: ⬇️ Checkout Code
+        uses: actions/checkout@v3
+      - name: ℹ️ Get Preview Environment Information
+        id: info
+        run: |
+          PREVIEW_NAME=${{ github.event.pull_request.head.ref }}
+          PREVIEW_NAME=$(echo $PREVIEW_NAME | sed -r 's/[^a-zA-Z0-9-]//g' | tr '[:upper:]' '[:lower:]')
+          PREVIEW_DOMAIN=${PREVIEW_NAME}.${{ inputs.domain }}
+          echo "::set-output name=preview_name::$PREVIEW_NAME"
+          echo "::set-output name=preview_domain::$PREVIEW_DOMAIN"
+      - name: 🚀 Create Preview Environment
+        run: |
+          skpr-preview create ${{ steps.info.outputs.preview_name }} ${{ steps.info.outputs.preview_domain }}
+      - name: 🧹 Execute Post Creation Commands
+        timeout-minutes: 30
+        run: |
+          skpr-preview exec ${{ steps.info.outputs.preview_name }} -- ${{ inputs.post_deploy_command }}
