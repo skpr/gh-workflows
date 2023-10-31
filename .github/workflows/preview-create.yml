@@ -3,10 +3,13 @@ name: Create Preview Environment
 on:
   workflow_call:
     inputs:
+      ref:
+        type: string
+        description: The fully-formed ref of the branch or tag that triggered the workflow run.
       image:
         type: string
         default: skpr/preview:2.x
-        description: Region which this preview infrastructure resides.
+        description: Image to use for this workflow.
       region:
         type: string
         default: ap-southeast-2
@@ -33,10 +36,10 @@ on:
     outputs:
       version:
         description: The preview environment name
-        value: ${{ jobs.info.outputs.preview_name }}
+        value: ${{ jobs.create.outputs.preview-name }}
       url:
         description: The URL of the preview environment
-        value: ${{ jobs.info.outputs.preview_domain }}
+        value: ${{ jobs.create.outputs.preview-domain }}
 
 env:
   AWS_REGION: ${{ inputs.region }}
@@ -49,8 +52,8 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{ secrets.SKPR_PREVIEW_PASSWORD }}
 
 jobs:
-  create-preview-environment:
-    name: Delete Preview Environment
+  create:
+    name: Create Preview Environment
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     container:
@@ -64,7 +67,7 @@ jobs:
       - name: ℹ️ Get Preview Environment Information
         id: info
         run: |
-          PREVIEW_NAME=${{ github.event.pull_request.head.ref }}
+          PREVIEW_NAME=${{ inputs.ref }}
           PREVIEW_NAME=$(echo $PREVIEW_NAME | sed -r 's/[^a-zA-Z0-9-]//g' | tr '[:upper:]' '[:lower:]')
           PREVIEW_DOMAIN=${PREVIEW_NAME}.${{ inputs.domain }}
           echo "preview_name=$PREVIEW_NAME" >> $GITHUB_OUTPUT
