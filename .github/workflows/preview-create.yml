@@ -67,7 +67,7 @@ jobs:
           PREVIEW_NAME=${{ github.event.pull_request.head.ref }}
           PREVIEW_NAME=$(echo $PREVIEW_NAME | sed -r 's/[^a-zA-Z0-9-]//g' | tr '[:upper:]' '[:lower:]')
           PREVIEW_DOMAIN=${PREVIEW_NAME}.${{ inputs.domain }}
-          echo "preview_name=$preview_name" >> $GITHUB_OUTPUT
+          echo "preview_name=$PREVIEW_NAME" >> $GITHUB_OUTPUT
           echo "preview_domain=$PREVIEW_DOMAIN" >> $GITHUB_OUTPUT
       - name: 🚀 Create Preview Environment
         run: |
