@@ -9,7 +9,7 @@ on:
         description: Region which this preview infrastructure resides.
       region:
         type: string
-        required: true
+        default: ap-southeast-2
         description: Region which this preview infrastructure resides.
       eks_cluster_name:
         default: true
