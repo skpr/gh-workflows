@@ -12,8 +12,7 @@ on:
         default: ap-southeast-2
         description: Region which this preview infrastructure resides.
       eks_cluster_name:
-        default: true
-        type: boolean
+        type: string
         description: Name of the EKS cluster which this preview environment resides.
       k8s_namespace:
         type: string
