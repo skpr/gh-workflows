@@ -17,7 +17,7 @@ on:
       version_from_env:
         type: string
         description: Get the version to deploy from the environment.
-      pause_cron:
+      suspend_cron:
         type: boolean
         default: false
         description: Pause Cron operations during the deployment.
@@ -88,12 +88,12 @@ jobs:
         if: inputs.package
         run: skpr package ${{ steps.version.outputs.version }}
       - name: ⏸️ Suspend Cron
-        if: inputs.pause_cron
+        if: inputs.suspend_cron
         run: skpr cron suspend ${{ inputs.env }} --wait
       - name: 🚀 Deploy
         run: skpr deploy ${{ inputs.env }} ${{ steps.version.outputs.version }}
       - name: ▶️ Resume Cron
-        if: inputs.pause_cron
+        if: inputs.suspend_cron
         run: skpr cron resume ${{ inputs.env }}
       - name: 🧹 Post-deploy
         run: skpr exec ${{ inputs.env }} ${{ inputs.post_deploy }}
