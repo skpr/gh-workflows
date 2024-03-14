@@ -72,6 +72,9 @@ jobs:
           elif [ -n "${{ inputs.version_from_env }}" ]; then
             version=$(skpr info ${{ inputs.version_from_env }} | jq -r ".Version")
             echo "::notice:: Using version $version from ${{ inputs.version_from_env }} env"
+          elif [ "${{ github.ref_type}}" == "tag" ]; then
+            version=${{ github.ref_name }}
+            echo "::notice:: Using version $version from github.ref_name context"
           else
             version=$(git describe --tags --always)
             echo "::notice:: Using version $version from git describe"
