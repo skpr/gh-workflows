@@ -25,6 +25,10 @@ on:
         default: make deploy
         type: string
         description: The post deploy commands to run on the environment.
+      runs-on:
+        default: ubuntu-latest
+        type: string
+        description: The type of machine to run the job on.
     secrets:
       skpr_username:
         required: true
@@ -45,7 +49,7 @@ env:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on }}
     environment:
       name: ${{ inputs.env }}
       url: ${{ steps.skpr-info.outputs.url }}
