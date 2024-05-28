@@ -25,6 +25,10 @@ on:
         default: make deploy
         type: string
         description: The post deploy commands to run on the environment.
+      runs_on:
+        default: ubuntu-latest
+        type: string
+        description: The type of machine to run the job on.
     secrets:
       skpr_username:
         required: true
@@ -45,7 +49,7 @@ env:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs_on }}
     environment:
       name: ${{ inputs.env }}
       url: ${{ steps.skpr-info.outputs.url }}
@@ -59,6 +63,15 @@ jobs:
         with:
           fetch-depth: 0
           show-progress: false
+      - name: ✓ Check for Github CLI
+        id: github-cli-check
+        run: |
+          if command -v gh 2>/dev/null; then
+            echo "github_cli=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: ⚙️ Install Github CLI
+        if: steps.github-cli-check.outputs.github_cli != 'true'
+        uses: ksivamuthu/actions-setup-gh-cli@v2
       - name: ⚙️ Install Skpr CLI
         run: |
           wget -q https://packages.skpr.io/apt/packages.skpr.io.pub -O- | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/packages.skpr.io.pub > /dev/null
@@ -101,4 +114,3 @@ jobs:
         run: skpr cron resume ${{ inputs.env }}
       - name: 🧹 Post-deploy
         run: skpr exec ${{ inputs.env }} ${{ inputs.post_deploy }}
-
