@@ -63,6 +63,15 @@ jobs:
         with:
           fetch-depth: 0
           show-progress: false
+      - name: ✓ Check for Github CLI
+        id: github-cli-check
+        run: |
+          if command -v gh 2>/dev/null; then
+            echo "github_cli=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: ⚙️ Install Github CLI
+        if: steps.github-cli-check.outputs.github_cli != 'true'
+        uses: ksivamuthu/actions-setup-gh-cli@v2
       - name: ⚙️ Install Skpr CLI
         run: |
           gh release download --repo skpr/cli --pattern skpr_*_linux_amd64.deb -O skpr-cli.deb
@@ -104,4 +113,3 @@ jobs:
         run: skpr cron resume ${{ inputs.env }}
       - name: 🧹 Post-deploy
         run: skpr exec ${{ inputs.env }} ${{ inputs.post_deploy }}
-
