@@ -1,0 +1,44 @@
+name: Static Application Security Test
+
+on:
+  workflow_call:
+    inputs:
+      severity:
+        type: string
+        default: critical
+        description: Severity level to fail the build on
+    secrets:
+      skpr_username:
+        required: true
+      skpr_password:
+        required: true
+
+env:
+  SKPR_USERNAME: ${{ secrets.SKPR_USERNAME }}
+  SKPR_PASSWORD: ${{ secrets.SKPR_PASSWORD }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout Code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Install Skpr CLI
+        run: |
+          wget -q https://packages.skpr.io/apt/packages.skpr.io.pub -O- | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/packages.skpr.io.pub > /dev/null
+          echo "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.skpr.io.pub] https://packages.skpr.io/apt stable main" | sudo tee -a /etc/apt/sources.list.d/skpr.list > /dev/null
+          sudo apt update && sudo apt install skpr
+
+      - name: ⚙️ Install Grype
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: 📋 Build and Scan
+        run: |
+          for i in $(skpr package grype --no-push --print-manifest | jq -r '.[].tag')
+          do
+            echo "Scanning image: ${i}"
+            grype ${i} --verbose --only-fixed --fail-on ${SEVERITY} -o table
+          done
