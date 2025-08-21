@@ -79,3 +79,6 @@ jobs:
         timeout-minutes: 30
         run: |
           skpr-preview exec ${{ steps.info.outputs.preview_name }} -- ${{ inputs.post_deploy_command }}
+      - name: Summary
+        run: |
+          echo "🪄 [${{ steps.info.outputs.preview_name }}](https://${{ steps.info.outputs.preview_domain }})" >> $GITHUB_STEP_SUMMARY
