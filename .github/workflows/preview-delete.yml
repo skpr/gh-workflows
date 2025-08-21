@@ -34,8 +34,8 @@ env:
   AWS_REGION: ${{ inputs.region }}
   SKPR_PREVIEW_CLUSTER_NAME: ${{ inputs.eks_cluster_name }}
   SKPR_PREVIEW_NAMESPACE: ${{ inputs.k8s_namespace }}
-  AWS_ACCESS_KEY_ID: ${{ secrets.SKPR_PREVIEW_USERNAME }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.SKPR_PREVIEW_PASSWORD }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.skpr_preview_username }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.skpr_preview_password }}
 
 jobs:
   delete:

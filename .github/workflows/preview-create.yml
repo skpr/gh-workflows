@@ -45,11 +45,11 @@ env:
   AWS_REGION: ${{ inputs.region }}
   SKPR_PREVIEW_CLUSTER_NAME: ${{ inputs.eks_cluster_name }}
   SKPR_PREVIEW_NAMESPACE: ${{ inputs.k8s_namespace }}
-  SKPR_PREVIEW_REGISTRY_URL: ${{ secrets.SKPR_PREVIEW_REGISTRY_URL }}
-  SKPR_PREVIEW_REGISTRY_USERNAME: ${{ secrets.SKPR_PREVIEW_USERNAME }}
-  SKPR_PREVIEW_REGISTRY_PASSWORD: ${{ secrets.SKPR_PREVIEW_PASSWORD }}
-  AWS_ACCESS_KEY_ID: ${{ secrets.SKPR_PREVIEW_USERNAME }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.SKPR_PREVIEW_PASSWORD }}
+  SKPR_PREVIEW_REGISTRY_URL: ${{ secrets.skpr_preview_registry_url }}
+  SKPR_PREVIEW_REGISTRY_USERNAME: ${{ secrets.skpr_preview_username }}
+  SKPR_PREVIEW_REGISTRY_PASSWORD: ${{ secrets.skpr_preview_password }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.skpr_preview_username }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.skpr_preview_password }}
 
 jobs:
   create:
