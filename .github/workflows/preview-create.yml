@@ -25,7 +25,7 @@ on:
         description: Domain which these preview environments reside on.
       post_deploy_command:
         type: string
-        description: Command which will be executed after the environment is created. 
+        description: Command which will be executed after the environment is created.
     secrets:
       skpr_preview_registry_url:
         required: true
@@ -33,6 +33,9 @@ on:
         required: true
       skpr_preview_password:
         required: true
+      node_auth_token:
+        required: false
+
     outputs:
       version:
         description: The preview environment name
@@ -64,6 +67,7 @@ jobs:
     steps:
       - name: ⬇️ Checkout Code
         uses: actions/checkout@v3
+
       - name: ℹ️ Get Preview Environment Information
         id: info
         run: |
@@ -72,13 +76,28 @@ jobs:
           PREVIEW_DOMAIN=${PREVIEW_NAME}.${{ inputs.domain }}
           echo "preview_name=$PREVIEW_NAME" >> $GITHUB_OUTPUT
           echo "preview_domain=$PREVIEW_DOMAIN" >> $GITHUB_OUTPUT
+
       - name: 🚀 Create Preview Environment
         run: |
-          skpr-preview create ${{ steps.info.outputs.preview_name }} ${{ steps.info.outputs.preview_domain }}
+          FLAGS=""
+
+          if [ -n "${{ secrets.node_auth_token }}" ]; then
+            echo "Using NODE_AUTH_TOKEN for build..."
+            FLAGS="$FLAGS --build-arg=NODE_AUTH_TOKEN=${{ secrets.node_auth_token }}"
+          else
+            echo "NODE_AUTH_TOKEN not provided. Proceeding without it..."
+          fi
+
+          skpr-preview create \
+            ${{ steps.info.outputs.preview_name }} \
+            ${{ steps.info.outputs.preview_domain }} \
+            $FLAGS
+
       - name: 🧹 Execute Post Creation Commands
         timeout-minutes: 30
         run: |
           skpr-preview exec ${{ steps.info.outputs.preview_name }} -- ${{ inputs.post_deploy_command }}
+
       - name: Summary
         run: |
           echo "🪄 [${{ steps.info.outputs.preview_name }}](https://${{ steps.info.outputs.preview_domain }})" >> $GITHUB_STEP_SUMMARY
