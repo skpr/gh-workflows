@@ -26,10 +26,10 @@ on:
       post_deploy_command:
         type: string
         description: Command which will be executed after the environment is created.
-      build_args:
+      extra_flags:
         type: string
         default: ""
-        description: Optional Docker build args; space-separated or multi-line KEY=VALUE pairs.
+        description: "Extra flags to pass to skpr-preview create (space-separated, supports quotes)."
     secrets:
       skpr_preview_registry_url:
         required: true
@@ -78,15 +78,8 @@ jobs:
           echo "preview_domain=$PREVIEW_DOMAIN" >> $GITHUB_OUTPUT
       - name: 🚀 Create Preview Environment
         run: |
-          # Build --build-arg flags from input (supports space-separated or multi-line)
-          ARGS=""
-          # Read as lines so values with spaces are supported if the user uses multi-line input
-          while IFS= read -r line; do
-            [[ -z "$line" ]] && continue
-            ARGS="$ARGS --build-arg=$line"
-          done <<< "${{ inputs.build_args }}"
-
-          skpr-preview create $ARGS ${{ steps.info.outputs.preview_name }} ${{ steps.info.outputs.preview_domain }}
+          EXTRA_FLAGS='${{ inputs.extra_flags }}'
+          eval "skpr-preview create ${EXTRA_FLAGS} ${{ steps.info.outputs.preview_name }} ${{ steps.info.outputs.preview_domain }}"
       - name: 🧹 Execute Post Creation Commands
         timeout-minutes: 30
         run: |
