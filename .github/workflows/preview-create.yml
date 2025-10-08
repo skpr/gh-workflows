@@ -25,7 +25,11 @@ on:
         description: Domain which these preview environments reside on.
       post_deploy_command:
         type: string
-        description: Command which will be executed after the environment is created. 
+        description: Command which will be executed after the environment is created.
+      build_args:
+        type: string
+        default: ""
+        description: Optional Docker build args; space-separated or multi-line KEY=VALUE pairs.
     secrets:
       skpr_preview_registry_url:
         required: true
@@ -74,7 +78,15 @@ jobs:
           echo "preview_domain=$PREVIEW_DOMAIN" >> $GITHUB_OUTPUT
       - name: 🚀 Create Preview Environment
         run: |
-          skpr-preview create ${{ steps.info.outputs.preview_name }} ${{ steps.info.outputs.preview_domain }}
+          # Build --build-arg flags from input (supports space-separated or multi-line)
+          ARGS=""
+          # Read as lines so values with spaces are supported if the user uses multi-line input
+          while IFS= read -r line; do
+            [[ -z "$line" ]] && continue
+            ARGS="$ARGS --build-arg=$line"
+          done <<< "${{ inputs.build_args }}"
+
+          skpr-preview create $ARGS ${{ steps.info.outputs.preview_name }} ${{ steps.info.outputs.preview_domain }}
       - name: 🧹 Execute Post Creation Commands
         timeout-minutes: 30
         run: |
