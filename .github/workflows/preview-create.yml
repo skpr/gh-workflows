@@ -78,7 +78,7 @@ jobs:
           echo "preview_domain=$PREVIEW_DOMAIN" >> $GITHUB_OUTPUT
       - name: 🚀 Create Preview Environment
         run: |
-          EXTRA_FLAGS='${{ inputs.extra_flags }}'
+          EXTRA_FLAGS=${{ inputs.extra_flags }}
           eval "skpr-preview create ${EXTRA_FLAGS} ${{ steps.info.outputs.preview_name }} ${{ steps.info.outputs.preview_domain }}"
       - name: 🧹 Execute Post Creation Commands
         timeout-minutes: 30
