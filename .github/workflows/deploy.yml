@@ -11,6 +11,10 @@ on:
         default: true
         type: boolean
         description: Whether this deployment needs to be packaged.
+      package_args:
+        type: string
+        default: ''
+        description: Args to pass to the package command
       version:
         type: string
         description: The version to deploy
@@ -90,7 +94,7 @@ jobs:
           echo "url=$url" >> $GITHUB_OUTPUT
       - name: 📦 Package
         if: inputs.package
-        run: skpr package ${{ steps.version.outputs.version }}
+        run: skpr package ${{ steps.version.outputs.version }} ${{ inputs.package_args }}
       - name: ⏸️ Suspend Cron
         if: inputs.suspend_cron
         run: skpr cron suspend ${{ inputs.env }} --wait
@@ -100,5 +104,6 @@ jobs:
         if: inputs.suspend_cron
         run: skpr cron resume ${{ inputs.env }}
       - name: 🧹 Post-deploy
+        if: "${{ inputs.post_deploy != '' }}"
         run: skpr exec ${{ inputs.env }} ${{ inputs.post_deploy }}
 
