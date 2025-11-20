@@ -11,10 +11,6 @@ on:
         default: true
         type: boolean
         description: Whether this deployment needs to be packaged.
-      package_args:
-        type: string
-        default: ''
-        description: Args to pass to the package command
       version:
         type: string
         description: The version to deploy
@@ -34,6 +30,8 @@ on:
         required: true
       skpr_password:
         required: true
+      node_auth_token:
+        required: false
     outputs:
       version:
         description: The version deployed
@@ -94,7 +92,17 @@ jobs:
           echo "url=$url" >> $GITHUB_OUTPUT
       - name: 📦 Package
         if: inputs.package
-        run: skpr package ${{ steps.version.outputs.version }} ${{ inputs.package_args }}
+        run: |
+          FLAGS=""
+
+          if [ -n "${{ secrets.node_auth_token }}" ]; then
+            echo "Using NODE_AUTH_TOKEN for build..."
+            FLAGS="$FLAGS --build-arg=NODE_AUTH_TOKEN=${{ secrets.node_auth_token }}"
+          else
+            echo "NODE_AUTH_TOKEN not provided. Proceeding without it..."
+          fi
+
+          skpr package ${{ steps.version.outputs.version }} $FLAGS
       - name: ⏸️ Suspend Cron
         if: inputs.suspend_cron
         run: skpr cron suspend ${{ inputs.env }} --wait
