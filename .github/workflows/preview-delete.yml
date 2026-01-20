@@ -56,4 +56,4 @@ jobs:
           echo "preview_name=$PREVIEW_NAME" >> $GITHUB_OUTPUT
       - name: 🧹 Delete Preview Environment
         run: |
-          skpr-preview delete ${{ steps.info.outputs.preview_name }} || echo "Preview environment ${{ steps.info.outputs.preview_name }} does not exist or has already been deleted."
+          skpr-preview delete ${{ steps.info.outputs.preview_name }} || echo "Preview environment ${{ steps.info.outputs.preview_name }} does not exist or has already been deleted." >> $GITHUB_OUTPUT
