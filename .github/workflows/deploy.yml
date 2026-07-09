@@ -90,6 +90,8 @@ jobs:
           domain=$(skpr info ${{ inputs.env }} | jq -r ".Ingress.Domain")
           url=https://$domain
           echo "url=$url" >> $GITHUB_OUTPUT
+      - name: 🧐 Validate
+        run: skpr validate ${{ inputs.env }}
       - name: 📦 Package
         if: inputs.package
         run: |
