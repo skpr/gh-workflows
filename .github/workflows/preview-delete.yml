@@ -39,6 +39,8 @@ env:
 
 jobs:
   delete:
+    permissions:
+      contents: read
     name: Delete Preview Environment
     runs-on: ubuntu-latest
     container:
@@ -47,7 +49,7 @@ jobs:
       preview-name: ${{ steps.info.outputs.preview_name }}
     steps:
       - name: ⬇️ Checkout Code
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - name: ℹ️ Get Preview Environment Information
         id: info
         run: |
